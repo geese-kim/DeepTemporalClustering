@@ -14,9 +14,19 @@ ucr = UCR_UEA_datasets()
 # UCR/UEA univariate and multivariate datasets.
 all_ucr_datasets = ucr.list_datasets()
 
+def load_cairo():
+    X = np.load('./npy/cairo-x.npy', allow_pickle=True)
+    # y = np.load('./npy/cairo-y.npy', allow_pickle=True)
+    dictActivities = np.load('./npy/cairo-labels.npy', allow_pickle=True).item()
+
+    X_scaled=TimeSeriesScalerMeanVariance().fit_transform(X)
+    return X_scaled, dictActivities
+
 
 def load_ucr(dataset='CBF'):
     X_train, y_train, X_test, y_test = ucr.load_dataset(dataset)
+    print(X_train.shape, X_test.shape)
+    print(y_train.shape, y_test.shape)
     X = np.concatenate((X_train, X_test))
     y = np.concatenate((y_train, y_test))
     if dataset == 'HandMovementDirection':  # this one has special labels
@@ -24,7 +34,9 @@ def load_ucr(dataset='CBF'):
     y = LabelEncoder().fit_transform(y)  # sometimes labels are strings or start from 1
     assert(y.min() == 0)  # assert labels are integers and start from 0
     # preprocess data (standardization)
+    
     X_scaled = TimeSeriesScalerMeanVariance().fit_transform(X)
+    print(X_scaled.shape)
     return X_scaled, y
 
 

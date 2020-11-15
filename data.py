@@ -295,6 +295,7 @@ def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
 
 
 if __name__ == '__main__':
+    timesteps=128
     for filename in datasets:
         datasetName = filename.split("/")[-1]
         print('Loading ' + datasetName + ' dataset ...')
@@ -310,20 +311,25 @@ if __name__ == '__main__':
 
         print(Counter(Y))
 
-        X = np.array(X, dtype=object)
-        Y = np.array(Y, dtype=object)
+        X = np.array(X[:-(len(X)%timesteps)], dtype=object)
+        X = X.reshape(-1, 128, 1)
+        # print(X.shape)
+        # no label
+        # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object)
+        # Y = Y.reshape(X.shape[0], 1, 1)
+        # print(Y.shape)
 
-        X = sequence.pad_sequences(X, maxlen=max_lenght, dtype='int32')
+        # X = sequence.pad_sequences(X, maxlen=max_lenght, dtype='int32')
         if not os.path.exists('npy'):
             os.makedirs('npy')
 
         np.save('./npy/' + datasetName + '-x.npy', X)
-        np.save('./npy/' + datasetName + '-y.npy', Y)
+        # np.save('./npy/' + datasetName + '-y.npy', Y)
         np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
 
 
-def getData(datasetName):
-    X = np.load('./npy/' + datasetName + '-x.npy')
-    Y = np.load('./npy/' + datasetName + '-y.npy')
-    dictActivities = np.load('./npy/' + datasetName + '-labels.npy').item()
-    return X, Y, dictActivities
+# def getData(datasetName):
+#     X = np.load('./npy/' + datasetName + '-x.npy')
+#     Y = np.load('./npy/' + datasetName + '-y.npy')
+#     dictActivities = np.load('./npy/' + datasetName + '-labels.npy').item()
+#     return X, Y, dictActivities

@@ -12,6 +12,8 @@ import argparse
 import sys
 from time import time
 
+from tslearn.preprocessing import TimeSeriesScalerMeanVariance
+
 # Keras
 from keras.models import Model
 from keras.layers import Dense, Reshape, UpSampling2D, Conv2DTranspose, GlobalAveragePooling1D, Softmax
@@ -22,7 +24,7 @@ import keras.backend as K
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
-from datasets import load_data
+from datasets import load_data, load_cairo
 import data
 
 # DTC components
@@ -488,13 +490,18 @@ if __name__ == "__main__":
 
     # Load data
     # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
-    X_train, y_train = data.getData('cairo')
-    print(X_train.shape[-1])
-    print(X_train.shape[1])
+    X_train, dictActivities = load_cairo()
+    y_train=None; X_val=None; y_val=None
+    # print(X_train.shape) # input_dim
+    # print(y_train.shape)
+    print(X_train.shape)
+    print(dictActivities)
+    # print(X_train.shape[1]) # timesteps
+    # sys.exit()
     # Find number of clusters
-    # if args.n_clusters is None:
-        # args.n_clusters = len(np.unique(y_train))
-    args.n_clusters=len(np.unique(y_train))
+    if args.n_clusters is None:
+        args.n_clusters = len(dictActivities.keys())
+    # args.n_clusters=len(np.unique(y_train))
     print(args.n_clusters)
     
     # Set default values
@@ -542,6 +549,7 @@ if __name__ == "__main__":
     print('Performance (TRAIN)')
     results = {}
     q = dtc.model.predict(X_train)[1]
+    np.save('./npy/result_128.npy', q)
     y_pred = q.argmax(axis=1)
     if y_train is not None:
         results['acc'] = cluster_acc(y_train, y_pred)
