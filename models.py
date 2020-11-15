@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from keras.layers import Dense, LSTM, Bidirectional, Merge
+from keras.layers import Dense, LSTM, Bidirectional, Concatenate
 from keras.layers.embeddings import Embedding
 from keras.models import Sequential
 
@@ -31,7 +31,7 @@ def get_Ensemble2LSTM(input_dim, output_dim, max_lenght, no_activities):
     model2.add(LSTM(output_dim))
 
     model = Sequential(name='Ensemble2LSTM')
-    model.add(Merge([model1, model2], mode='concat'))
+    model.add(Concatenate()([model1, model2]))
     model.add(Dense(no_activities, activation='softmax'))
     return model
 
@@ -46,7 +46,7 @@ def get_CascadeEnsembleLSTM(input_dim, output_dim, max_lenght, no_activities):
     model2.add(LSTM(output_dim, return_sequences=True))
 
     model = Sequential(name='CascadeEnsembleLSTM')
-    model.add(Merge([model1, model2], mode='concat'))
+    model.add(Concatenate()([model1, model2]))
     model.add(LSTM(output_dim))
     model.add(Dense(no_activities, activation='softmax'))
     return model

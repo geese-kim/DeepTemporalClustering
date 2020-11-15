@@ -295,7 +295,7 @@ def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
 
 
 if __name__ == '__main__':
-    timesteps=128
+    timesteps=32
     for filename in datasets:
         datasetName = filename.split("/")[-1]
         print('Loading ' + datasetName + ' dataset ...')
@@ -310,9 +310,9 @@ if __name__ == '__main__':
         print("n° instances post-filtering:\t" + str(len(X)))
 
         print(Counter(Y))
-
-        X = np.array(X[:-(len(X)%timesteps)], dtype=object)
-        X = X.reshape(-1, 128, 1)
+        X = np.array(X, dtype=object); print(X.shape)
+        # X = np.array(X[:-(len(X)%timesteps)], dtype=object)
+        # X = X.reshape(-1, timesteps, 1)
         # print(X.shape)
         # no label
         # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object)
@@ -323,9 +323,9 @@ if __name__ == '__main__':
         if not os.path.exists('npy'):
             os.makedirs('npy')
 
-        np.save('./npy/' + datasetName + '-x.npy', X)
+        # np.save('./npy/' + datasetName + '-x.npy', X)
         # np.save('./npy/' + datasetName + '-y.npy', Y)
-        np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
+        # np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
 
 
 # def getData(datasetName):
