@@ -9,6 +9,7 @@ Main file
 import os
 import csv
 import argparse
+import sys
 from time import time
 
 # Keras
@@ -22,6 +23,7 @@ from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
 from datasets import load_data
+import data
 
 # DTC components
 from TSClusteringLayer import TSClusteringLayer
@@ -485,12 +487,16 @@ if __name__ == "__main__":
         os.makedirs(args.save_dir)
 
     # Load data
-    (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
-
+    # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
+    X_train, y_train = data.getData('cairo')
+    print(X_train.shape[-1])
+    print(X_train.shape[1])
     # Find number of clusters
-    if args.n_clusters is None:
-        args.n_clusters = len(np.unique(y_train))
-
+    # if args.n_clusters is None:
+        # args.n_clusters = len(np.unique(y_train))
+    args.n_clusters=len(np.unique(y_train))
+    print(args.n_clusters)
+    
     # Set default values
     pretrain_optimizer = 'adam'
 
