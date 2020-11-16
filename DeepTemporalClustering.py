@@ -490,8 +490,9 @@ if __name__ == "__main__":
 
     dataset_names=['cairo', 'kyoto7', 'kyoto11', 'milan', 'kyoto8']
     # Load data
-    # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
-    X_train, dictActivities = load_casas(dataset_names[0]) # cairo
+    (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
+    print(X_train.shape, y_train.shape)
+    X_train, _, dictActivities = load_casas(dataset_names[0]) # cairo
     y_train=None; X_val=None; y_val=None
     # print(X_train.shape) # input_dim
     # print(y_train.shape)
@@ -550,8 +551,8 @@ if __name__ == "__main__":
     print('Performance (TRAIN)')
     results = {}
     q = dtc.model.predict(X_train)[1]
-    np.save('./npy/result_128.npy', q)
     y_pred = q.argmax(axis=1)
+    np.save('./npy/result_128.npy', y_pred)
     if y_train is not None:
         results['acc'] = cluster_acc(y_train, y_pred)
         results['pur'] = cluster_purity(y_train, y_pred)
