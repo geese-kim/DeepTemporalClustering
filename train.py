@@ -26,10 +26,6 @@ if __name__ == '__main__':
     """The entry point"""
     # set and parse the arguments list
 
-
-
-    
-
     ####################################################################################### revised
     # XX=np.load('npy/cairo-x.npy', allow_pickle=True)
     # YY=np.load('npy/result_32.npy', allow_pickle=True).argmax(axis=1)
