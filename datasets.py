@@ -15,11 +15,11 @@ ucr = UCR_UEA_datasets()
 # UCR/UEA univariate and multivariate datasets.
 all_ucr_datasets = ucr.list_datasets()
 
-timestep=32
+fixlength=32
 
 def load_casas(dataset):
-    X = np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True); X=X[:-1*(X.shape[0]%timestep)].reshape(-1, 32, 1); print(X.shape)
-    Y = np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True); Y=Y[:-1*(Y.shape[0]%timestep)].reshape(-1, 32, 1); print(Y.shape); Y=np.array(Y, dtype=int)
+    X = np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True); X=X[:-1*(X.shape[0]%fixlength)].reshape(-1, 32, 1); print(X.shape)
+    Y = np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True); Y=Y[:-1*(Y.shape[0]%fixlength)].reshape(-1, 32, 1); print(Y.shape); Y=np.array(Y, dtype=int)
 
     y=[]
     for i in range(X.shape[0]):

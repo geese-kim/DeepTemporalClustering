@@ -24,7 +24,7 @@ import keras.backend as K
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
-from datasets import load_data, load_casas
+from datasets import load_data, load_casas, fixlength
 import data
 
 # DTC components
@@ -294,7 +294,8 @@ class DTC:
                  epochs=10,
                  batch_size=64,
                  save_dir='results/tmp',
-                 verbose=1):
+                 verbose=1,
+                 dataset=None):
         """
         Pre-train the autoencoder using only MSE reconstruction loss
         Saves weights in h5 format.
@@ -313,8 +314,8 @@ class DTC:
         t0 = time()
         self.autoencoder.fit(X, X, batch_size=batch_size, epochs=epochs, verbose=verbose)
         print('Pretraining time: ', time() - t0)
-        self.autoencoder.save_weights('{}/ae_weights-epoch{}.h5'.format(save_dir, epochs))
-        print('Pretrained weights are saved to {}/ae_weights-epoch{}.h5'.format(save_dir, epochs))
+        self.autoencoder.save_weights('{}/ae_weights-epoch{}_{}.h5'.format(save_dir, epochs, dataset))
+        print('Pretrained weights are saved to {}/ae_weights-epoch{}_{}.h5'.format(save_dir, epochs, dataset))
         self.pretrained = True
 
     def fit(self, X_train, y_train=None,
@@ -353,7 +354,7 @@ class DTC:
             self.finetune_heatmap_at_epoch = finetune_heatmap_at_epoch
 
         # Logging file
-        logfile = open(save_dir + '/dtc_log.csv', 'w')
+        logfile = open(save_dir + '/dtc_{}_log.csv'.format(dataset), 'w')
         fieldnames = ['epoch', 'T', 'L', 'Lr', 'Lc']
         if X_val is not None:
             fieldnames += ['L_val', 'Lr_val', 'Lc_val']
@@ -437,8 +438,8 @@ class DTC:
 
             # Save intermediate model and plots
             if epoch % save_epochs == 0:
-                self.model.save_weights(save_dir + '/DTC_model_{}'.format(dataset) + str(epoch) + '.h5')
-                print('Saved model to:', save_dir + '/DTC_model_{}'.format(dataset) + str(epoch) + '.h5')
+                self.model.save_weights(save_dir + '/DTC_model_{}_'.format(dataset) + str(epoch) + '.h5')
+                print('Saved model to:', save_dir + '/DTC_model_{}_'.format(dataset) + str(epoch) + '.h5')
 
             # Train for one epoch
             if self.heatmap:
@@ -537,7 +538,7 @@ if __name__ == "__main__":
       if args.ae_weights is None and args.pretrain_epochs > 0:
           dtc.pretrain(X=X_train, optimizer=pretrain_optimizer,
                       epochs=args.pretrain_epochs, batch_size=args.batch_size,
-                      save_dir=args.save_dir)
+                      save_dir=args.save_dir, dataset=item)
       elif args.ae_weights is not None:
           dtc.load_ae_weights(args.ae_weights)
 
@@ -555,7 +556,7 @@ if __name__ == "__main__":
       results = {}
       q = dtc.model.predict(X_train)[1]
       y_pred = q.argmax(axis=1)
-      np.save('./results/clustering_{}_{}.npy'.format(target, datasets.timestep), y_pred)
+      np.save('./results/clustering_{}_{}.npy'.format(item, fixlength), y_pred)
       if y_train is not None:
           results['acc'] = cluster_acc(y_train, y_pred)
           results['pur'] = cluster_purity(y_train, y_pred)
