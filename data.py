@@ -293,9 +293,8 @@ def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
 
     return Xf, Yf, activities
 
-
 if __name__ == '__main__':
-    timesteps=32
+    
     for filename in datasets:
         datasetName = filename.split("/")[-1]
         print('Loading ' + datasetName + ' dataset ...')

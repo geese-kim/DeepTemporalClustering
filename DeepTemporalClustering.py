@@ -326,7 +326,8 @@ class DTC:
             tol=0.001,
             patience=5,
             finetune_heatmap_at_epoch=8,
-            save_dir='results/tmp'):
+            save_dir='results/tmp',
+            dataset=None):
         """
         Training procedure
 
@@ -436,8 +437,8 @@ class DTC:
 
             # Save intermediate model and plots
             if epoch % save_epochs == 0:
-                self.model.save_weights(save_dir + '/DTC_model_' + str(epoch) + '.h5')
-                print('Saved model to:', save_dir + '/DTC_model_' + str(epoch) + '.h5')
+                self.model.save_weights(save_dir + '/DTC_model_{}'.format(dataset) + str(epoch) + '.h5')
+                print('Saved model to:', save_dir + '/DTC_model_{}'.format(dataset) + str(epoch) + '.h5')
 
             # Train for one epoch
             if self.heatmap:
@@ -448,8 +449,8 @@ class DTC:
 
         # Save the final model
         logfile.close()
-        print('Saving model to:', save_dir + '/DTC_model_final.h5')
-        self.model.save_weights(save_dir + '/DTC_model_final.h5')
+        print('Saving model to:', save_dir + '/DTC_model_{}_final.h5'.format(dataset))
+        self.model.save_weights(save_dir + '/DTC_model_{}_final.h5'.format(dataset))
 
 
 if __name__ == "__main__":
@@ -471,7 +472,7 @@ if __name__ == "__main__":
     parser.add_argument('--cluster_init', default='kmeans', type=str, choices=['kmeans', 'hierarchical'], help='cluster initialization method')
     parser.add_argument('--heatmap', default=False, type=bool, help='train heatmap-generating network')
     parser.add_argument('--pretrain_epochs', default=10, type=int)
-    parser.add_argument('--epochs', default=100, type=int)
+    parser.add_argument('--epochs', default=10, type=int)
     parser.add_argument('--eval_epochs', default=1, type=int)
     parser.add_argument('--save_epochs', default=10, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
@@ -489,74 +490,75 @@ if __name__ == "__main__":
         os.makedirs(args.save_dir)
 
     dataset_names=['cairo', 'kyoto7', 'kyoto11', 'milan', 'kyoto8']
-    # Load data
-    # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
-    # print(X_train.shape, y_train.shape)
-    target=dataset_names[0] # cairo
-    X_train, _, dictActivities = load_casas(target) 
-    y_train=None; X_val=None; y_val=None
-    # print(X_train.shape) # input_dim
-    # print(y_train.shape)
-    print(X_train.shape)
-    print(dictActivities)
-    # print(X_train.shape[1]) # timesteps
-    # sys.exit()
-    # Find number of clusters
-    if args.n_clusters is None:
-        args.n_clusters = len(dictActivities.keys())
-    # args.n_clusters=len(np.unique(y_train))
-    print(args.n_clusters)
-    
-    # Set default values
-    pretrain_optimizer = 'adam'
 
-    # Instantiate model
-    dtc = DTC(n_clusters=args.n_clusters,
-              input_dim=X_train.shape[-1],
-              timesteps=X_train.shape[1],
-              n_filters=args.n_filters,
-              kernel_size=args.kernel_size,
-              strides=args.strides,
-              pool_size=args.pool_size,
-              n_units=args.n_units,
-              alpha=args.alpha,
-              dist_metric=args.dist_metric,
-              cluster_init=args.cluster_init,
-              heatmap=args.heatmap)
+    for item in dataset_names:
+      # Load data
+      # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
+      # print(X_train.shape, y_train.shape)
+      X_train, _, dictActivities = load_casas(item) 
+      y_train=None; X_val=None; y_val=None
+      # print(X_train.shape) # input_dim
+      # print(y_train.shape)
+      print(X_train.shape)
+      print(dictActivities)
+      # print(X_train.shape[1]) # timesteps
+      # sys.exit()
+      # Find number of clusters
+      if args.n_clusters is None:
+          args.n_clusters = len(dictActivities.keys())
+      # args.n_clusters=len(np.unique(y_train))
+      print(args.n_clusters)
+      
+      # Set default values
+      pretrain_optimizer = 'adam'
 
-    # Initialize model
-    optimizer = 'adam'
-    dtc.initialize()
-    dtc.model.summary()
-    dtc.compile(gamma=args.gamma, optimizer=optimizer, initial_heatmap_loss_weight=args.initial_heatmap_loss_weight,
-                final_heatmap_loss_weight=args.final_heatmap_loss_weight)
+      # Instantiate model
+      dtc = DTC(n_clusters=args.n_clusters,
+                input_dim=X_train.shape[-1],
+                timesteps=X_train.shape[1],
+                n_filters=args.n_filters,
+                kernel_size=args.kernel_size,
+                strides=args.strides,
+                pool_size=args.pool_size,
+                n_units=args.n_units,
+                alpha=args.alpha,
+                dist_metric=args.dist_metric,
+                cluster_init=args.cluster_init,
+                heatmap=args.heatmap)
 
-    # Load pre-trained AE weights or pre-train
-    if args.ae_weights is None and args.pretrain_epochs > 0:
-        dtc.pretrain(X=X_train, optimizer=pretrain_optimizer,
-                     epochs=args.pretrain_epochs, batch_size=args.batch_size,
-                     save_dir=args.save_dir)
-    elif args.ae_weights is not None:
-        dtc.load_ae_weights(args.ae_weights)
+      # Initialize model
+      optimizer = 'adam'
+      dtc.initialize()
+      dtc.model.summary()
+      dtc.compile(gamma=args.gamma, optimizer=optimizer, initial_heatmap_loss_weight=args.initial_heatmap_loss_weight,
+                  final_heatmap_loss_weight=args.final_heatmap_loss_weight)
 
-    # Initialize clusters
-    dtc.init_cluster_weights(X_train)
+      # Load pre-trained AE weights or pre-train
+      if args.ae_weights is None and args.pretrain_epochs > 0:
+          dtc.pretrain(X=X_train, optimizer=pretrain_optimizer,
+                      epochs=args.pretrain_epochs, batch_size=args.batch_size,
+                      save_dir=args.save_dir)
+      elif args.ae_weights is not None:
+          dtc.load_ae_weights(args.ae_weights)
 
-    # Fit model
-    t0 = time()
-    dtc.fit(X_train, y_train, X_val, y_val, args.epochs, args.eval_epochs, args.save_epochs, args.batch_size,
-            args.tol, args.patience, args.finetune_heatmap_at_epoch, args.save_dir)
-    print('Training time: ', (time() - t0))
+      # Initialize clusters
+      dtc.init_cluster_weights(X_train)
 
-    # Evaluate
-    print('Performance (TRAIN)')
-    results = {}
-    q = dtc.model.predict(X_train)[1]
-    y_pred = q.argmax(axis=1)
-    np.save('./npy/clustering_{}_{}.npy'.format(target, datasets.timestep), y_pred)
-    if y_train is not None:
-        results['acc'] = cluster_acc(y_train, y_pred)
-        results['pur'] = cluster_purity(y_train, y_pred)
-        results['nmi'] = metrics.normalized_mutual_info_score(y_train, y_pred)
-        results['ari'] = metrics.adjusted_rand_score(y_train, y_pred)
-    print(results)
+      # Fit model
+      t0 = time()
+      dtc.fit(X_train, y_train, X_val, y_val, args.epochs, args.eval_epochs, args.save_epochs, args.batch_size,
+              args.tol, args.patience, args.finetune_heatmap_at_epoch, args.save_dir, dataset=item)
+      print('Training time: ', (time() - t0))
+
+      # Evaluate
+      print('Performance (TRAIN)')
+      results = {}
+      q = dtc.model.predict(X_train)[1]
+      y_pred = q.argmax(axis=1)
+      np.save('./results/clustering_{}_{}.npy'.format(target, datasets.timestep), y_pred)
+      if y_train is not None:
+          results['acc'] = cluster_acc(y_train, y_pred)
+          results['pur'] = cluster_purity(y_train, y_pred)
+          results['nmi'] = metrics.normalized_mutual_info_score(y_train, y_pred)
+          results['ari'] = metrics.adjusted_rand_score(y_train, y_pred)
+      print(results)
