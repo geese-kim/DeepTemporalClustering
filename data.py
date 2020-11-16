@@ -10,7 +10,7 @@ import numpy as np
 from keras.preprocessing import sequence
 
 offset = 20
-max_lenght = 2000
+max_lenght = 32
 
 cookActivities = {"cairo": {"Other": offset,
                             "Work": offset + 1,
@@ -260,7 +260,7 @@ def load_dataset(filename):
         # put embedded activities into YY
         YY.append(dictActivities[activities[kk]])
 
-    # return XX, YY, dictActivities
+    return XX, YY, dictActivities
 
     x = []
     for i, y in enumerate(YY): # embedded activities
@@ -310,22 +310,21 @@ if __name__ == '__main__':
         print("n° instances post-filtering:\t" + str(len(X)))
 
         print(Counter(Y))
-        X = np.array(X, dtype=object)
-        # X = np.array(X[:-(len(X)%timesteps)], dtype=object)
-        # X = X.reshape(-1, timesteps, 1)
-        # print(X.shape)
+        X = np.array(X, dtype=object); print('X shape: {}'.format(X.shape))
+        # X = np.array(X[:-(len(X)%timesteps)], dtype=object); print('X shape: {}'.format(X.shape))
+        # X = X.reshape(-1, timesteps, 1); print('reshape X: {}'.format(X.shape))
         # no label
-        Y = np.array(Y, dtype=object)
-        # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object)
-        # Y = Y.reshape(X.shape[0], 1, 1)
-        # print(Y.shape)
+        Y = np.array(Y, dtype=object); print('Y shape: {}'.format(Y.shape))
+        # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object); print('Y shape: {}'.format(Y.shape))
+        # Y = Y.reshape(-1, timesteps, 1); print('reshape Y: {}'.format(Y.shape))
 
         # X = sequence.pad_sequences(X, maxlen=max_lenght, dtype='int32')
         if not os.path.exists('npy'):
             os.makedirs('npy')
+        print(Y[:5])
 
-        np.save('./npy/' + datasetName + '-x-original.npy', X)
-        np.save('./npy/' + datasetName + '-y-original.npy', Y)
+        np.save('./npy/' + datasetName + '-x.npy', X)
+        np.save('./npy/' + datasetName + '-y.npy', Y)
         np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
 
 

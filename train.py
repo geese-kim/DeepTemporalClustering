@@ -12,6 +12,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.utils import compute_class_weight
 from keras.preprocessing import sequence
 from sklearn.preprocessing import LabelEncoder
+from collections import Counter
 
 import data
 import models
@@ -19,15 +20,31 @@ import models
 # fix random seed for reproducibility
 seed = 7
 units = 64
-epochs = 200
+epochs = 10
 
 if __name__ == '__main__':
     """The entry point"""
     # set and parse the arguments list
+
+    X_=np.load('./npy/cairo-x-original.npy', allow_pickle=True); X_=X_.reshape(-1, 32, 1); print(X_.shape); X_=np.array(X_, dtype=int)
+    Y_=np.load('./npy/cairo-y-original.npy', allow_pickle=True); Y_=Y_.reshape(-1, 32, 1); print(Y_.shape); Y_=np.array(Y_, dtype=int)
+  
+    y=[]
+    for i in range(X_.shape[0]):
+      y.append(np.argmax(np.bincount(Y_[i].flatten())))
+    print(Counter(y))
+    X=np.array(X_, dtype=object); X = sequence.pad_sequences(X, maxlen=32, dtype='int32')
+    Y=np.array(y, dtype=object); Y = Y.reshape(-1,1)
+
+    label_encoder = LabelEncoder()
+    Y = label_encoder.fit_transform(Y)
+
+    
+
     ####################################################################################### revised
     # XX=np.load('npy/cairo-x.npy', allow_pickle=True)
     # YY=np.load('npy/result_32.npy', allow_pickle=True).argmax(axis=1)
-    # dictActivities= np.load('npy/cairo-labels.npy', allow_pickle=True).item()
+    dictActivities= np.load('./npy/cairo-labels.npy', allow_pickle=True).item()
     
     # X=[]
     # Y=[]
@@ -62,7 +79,7 @@ if __name__ == '__main__':
     print(data.datasetsNames)
     for dataset in data.datasetsNames:
 
-        X, Y, dictActivities = data.getData(dataset)
+        # X, Y, dictActivities = data.getData(dataset)
 
         cvaccuracy = []
         cvscores = []
