@@ -62,20 +62,57 @@ if __name__ == '__main__':
 
     print(data.datasetsNames)
     for dataset in data.datasetsNames:
+        #### ONLY fixed-length sliding window ####
+        # X_=np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True); X_=X_[:-1*(X_.shape[0]%32)]; X_=X_.reshape(-1, 32, 1); print(X_.shape); X_=np.array(X_, dtype=int)
+        # Y_=np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True); Y_=Y_[:-1*(Y_.shape[0]%32)]; Y_=Y_.reshape(-1, 32, 1); print(Y_.shape); Y_=np.array(Y_, dtype=int)
+        # dictActivities= np.load('./npy/{}-labels.npy'.format(dataset), allow_pickle=True).item()
+        
+        # y=[]
+        # for i in range(X_.shape[0]):
+        #   y.append(np.argmax(np.bincount(Y_[i].flatten())))
+        # print(Counter(y))
+        # X=np.array(X_, dtype=object); X = sequence.pad_sequences(X, maxlen=32, dtype='int32')
+        # Y=np.array(y, dtype=object); Y = Y.reshape(-1,1)
 
-        X_=np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True); X_=X_[:-1*(X_.shape[0]%32)]; X_=X_.reshape(-1, 32, 1); print(X_.shape); X_=np.array(X_, dtype=int)
-        Y_=np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True); Y_=Y_[:-1*(Y_.shape[0]%32)]; Y_=Y_.reshape(-1, 32, 1); print(Y_.shape); Y_=np.array(Y_, dtype=int)
+        # label_encoder = LabelEncoder()
+        # Y = label_encoder.fit_transform(Y)
+        ##########################################
+
+        #### sliding window based on clustering ####
+        XX=np.load('npy/{}-x.npy'.format(dataset), allow_pickle=True); XX=XX.reshape(-1,32,1); print(XX.shape)
+        YY=np.load('results/clustering_{}_32.npy'.format(dataset), allow_pickle=True); print(YY.shape)
         dictActivities= np.load('./npy/{}-labels.npy'.format(dataset), allow_pickle=True).item()
-
-        y=[]
-        for i in range(X_.shape[0]):
-          y.append(np.argmax(np.bincount(Y_[i].flatten())))
-        print(Counter(y))
-        X=np.array(X_, dtype=object); X = sequence.pad_sequences(X, maxlen=32, dtype='int32')
-        Y=np.array(y, dtype=object); Y = Y.reshape(-1,1)
+        X=[]
+        Y=[]
+        x=[]
+        MAX_LEN=0
+        for i, y in enumerate(YY): # embedded activities
+          if i == 0: # initiate
+              Y.append(y) # list of embedded act
+              x = [XX[i]] # list of embedded val
+          if i > 0:
+              if y == YY[i - 1]: # previous act is same with current act
+                  x.append(XX[i])
+              else:
+                  Y.append(y) # current act is different from the previous one
+                  target=np.concatenate(x)
+                  X.append(target) #
+                  if target.shape[0]>MAX_LEN:
+                    MAX_LEN=target.shape[0] 
+                  x = [XX[i]] # ?
+          if i == len(YY) - 1: # the last event of the dataset
+              if y != YY[i - 1]:
+                  Y.append(y) # activity changed -> append into Y
+              target=np.concatenate(x)
+              X.append(target) #
+              if target.shape[0]>MAX_LEN:
+                MAX_LEN=target.shape[0]
+        print(len(X), len(Y), MAX_LEN)
+        X = sequence.pad_sequences(X, maxlen=MAX_LEN, dtype='int32')
 
         label_encoder = LabelEncoder()
         Y = label_encoder.fit_transform(Y)
+        print(Y.shape, Y)
 
         # X, Y, dictActivities = data.getData(dataset)
 

@@ -178,6 +178,8 @@ def load_dataset(filename):
         for i, line in enumerate(database):  # each line
             f_info = line.decode().split()  # find fields; ymd (time) / hms (time) / sensor-type / value / activity (optional)
             try:
+                if activity=='':
+                  continue
                 if 'M' == f_info[2][0] or 'D' == f_info[2][0] or 'T' == f_info[2][0]:
                     # choose only M D T sensors, avoiding unexpected errors
                     if not ('.' in str(np.array(f_info[0])) + str(np.array(f_info[1]))):
@@ -219,6 +221,9 @@ def load_dataset(filename):
     
     # activity numbering
     activityList = sorted(set(activities)) # unique activity names
+    ### additional ###
+    activityList.remove('')
+    ################## 
     dictActivities = {}
     for i, activity in enumerate(activityList):
         dictActivities[activity] = i
@@ -258,7 +263,10 @@ def load_dataset(filename):
         else:
             XX.append(dictObs[s + str(values[kk])])
         # put embedded activities into YY
-        YY.append(dictActivities[activities[kk]])
+        try:
+          YY.append(dictActivities[activities[kk]])
+        except KeyError:
+          continue
 
     return XX, YY, dictActivities
 
@@ -321,9 +329,13 @@ if __name__ == '__main__':
         if not os.path.exists('npy'):
             os.makedirs('npy')
 
-        np.save('./npy/' + datasetName + '-x.npy', X)
-        np.save('./npy/' + datasetName + '-y.npy', Y)
-        np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
+        # np.save('./npy/' + datasetName + '-x.npy', X)
+        # np.save('./npy/' + datasetName + '-y.npy', Y)
+        # np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
+
+        np.save('./npy/' + datasetName + '-x-noidle.npy', X)
+        np.save('./npy/' + datasetName + '-y-noidle.npy', Y)
+        np.save('./npy/' + datasetName + '-labels-noidle.npy', dictActivities)
 
 
 def getData(datasetName):
