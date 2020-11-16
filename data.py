@@ -10,6 +10,7 @@ import numpy as np
 from keras.preprocessing import sequence
 
 offset = 20
+fixed_length = 32
 max_lenght = 32
 
 cookActivities = {"cairo": {"Other": offset,
@@ -178,8 +179,6 @@ def load_dataset(filename):
         for i, line in enumerate(database):  # each line
             f_info = line.decode().split()  # find fields; ymd (time) / hms (time) / sensor-type / value / activity (optional)
             try:
-                if activity=='':
-                  continue
                 if 'M' == f_info[2][0] or 'D' == f_info[2][0] or 'T' == f_info[2][0]:
                     # choose only M D T sensors, avoiding unexpected errors
                     if not ('.' in str(np.array(f_info[0])) + str(np.array(f_info[1]))):
@@ -258,15 +257,17 @@ def load_dataset(filename):
     Y = []
     for kk, s in enumerate(sensors): # sensor names of input dataset
         # put embedded sensor values into XX
+        try:
+          YY.append(dictActivities[activities[kk]])
+        except KeyError:
+          continue
+
         if "T" in s:
             XX.append(dictObs[s + str(round(float(values[kk]), 1))])
         else:
             XX.append(dictObs[s + str(values[kk])])
         # put embedded activities into YY
-        try:
-          YY.append(dictActivities[activities[kk]])
-        except KeyError:
-          continue
+        
 
     return XX, YY, dictActivities
 
@@ -302,6 +303,10 @@ def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
     return Xf, Yf, activities
 
 if __name__ == '__main__':
+
+    print("Target Length: {}".format(fixed_length))
+    if not os.path.exists('./npy/{}'.format(fixed_length)):
+      os.mkdir('./npy/{}'.format(fixed_length))
     
     for filename in datasets:
         datasetName = filename.split("/")[-1]
@@ -317,11 +322,17 @@ if __name__ == '__main__':
         print("n° instances post-filtering:\t" + str(len(X)))
 
         print(Counter(Y))
-        X = np.array(X, dtype=object); print('X shape: {}'.format(X.shape))
+        X = np.array(X, dtype=object)
+        if -1*(X.shape[0]%fixed_length)!=0:
+          X=X[:-1*(X.shape[0]%fixed_length)]
+        print('X shape: {}'.format(X.shape))
         # X = np.array(X[:-(len(X)%timesteps)], dtype=object); print('X shape: {}'.format(X.shape))
         # X = X.reshape(-1, timesteps, 1); print('reshape X: {}'.format(X.shape))
         # no label
-        Y = np.array(Y, dtype=object); print('Y shape: {}'.format(Y.shape))
+        Y = np.array(Y, dtype=object)
+        if -1*(Y.shape[0]%fixed_length)!=0:
+          Y=Y[:-1*(Y.shape[0]%fixed_length)]
+        print('Y shape: {}'.format(Y.shape))
         # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object); print('Y shape: {}'.format(Y.shape))
         # Y = Y.reshape(-1, timesteps, 1); print('reshape Y: {}'.format(Y.shape))
 
@@ -333,9 +344,9 @@ if __name__ == '__main__':
         # np.save('./npy/' + datasetName + '-y.npy', Y)
         # np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
 
-        np.save('./npy/' + datasetName + '-x-noidle.npy', X)
-        np.save('./npy/' + datasetName + '-y-noidle.npy', Y)
-        np.save('./npy/' + datasetName + '-labels-noidle.npy', dictActivities)
+        np.save('./npy/{}/'.format(fixed_length) + datasetName + '-x-noidle.npy', X)
+        np.save('./npy/{}/'.format(fixed_length) + datasetName + '-y-noidle.npy', Y)
+        np.save('./npy/{}/'.format(fixed_length) + datasetName + '-labels-noidle.npy', dictActivities)
 
 
 def getData(datasetName):

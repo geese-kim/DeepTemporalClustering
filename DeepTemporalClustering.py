@@ -24,7 +24,7 @@ import keras.backend as K
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
-from datasets import load_data, load_casas, fixlength
+from datasets import load_data, load_casas, fixed_length
 import data
 
 # DTC components
@@ -473,7 +473,7 @@ if __name__ == "__main__":
     parser.add_argument('--cluster_init', default='kmeans', type=str, choices=['kmeans', 'hierarchical'], help='cluster initialization method')
     parser.add_argument('--heatmap', default=False, type=bool, help='train heatmap-generating network')
     parser.add_argument('--pretrain_epochs', default=10, type=int)
-    parser.add_argument('--epochs', default=10, type=int)
+    parser.add_argument('--epochs', default=50, type=int)
     parser.add_argument('--eval_epochs', default=1, type=int)
     parser.add_argument('--save_epochs', default=10, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
@@ -489,6 +489,10 @@ if __name__ == "__main__":
     # Create save directory if not exists
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
+
+    if not os.path.exists('./results/{}'.format(fixed_length)):
+        print("create new folder for length {}.".format(fixed_length))
+        os.makedirs('./results/{}'.format(fixed_length))
 
     dataset_names=['cairo', 'kyoto7', 'kyoto11', 'milan', 'kyoto8']
 
@@ -556,7 +560,7 @@ if __name__ == "__main__":
       results = {}
       q = dtc.model.predict(X_train)[1]
       y_pred = q.argmax(axis=1)
-      np.save('./results/clustering_{}_{}.npy'.format(item, fixlength), y_pred)
+      np.save('./results/{}/clustering_{}.npy'.format(fixed_length, item), y_pred)
       if y_train is not None:
           results['acc'] = cluster_acc(y_train, y_pred)
           results['pur'] = cluster_purity(y_train, y_pred)
