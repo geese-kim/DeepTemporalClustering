@@ -14,10 +14,10 @@ ucr = UCR_UEA_datasets()
 # UCR/UEA univariate and multivariate datasets.
 all_ucr_datasets = ucr.list_datasets()
 
-def load_cairo():
-    X = np.load('./npy/cairo-x.npy', allow_pickle=True)
-    # y = np.load('./npy/cairo-y.npy', allow_pickle=True)
-    dictActivities = np.load('./npy/cairo-labels.npy', allow_pickle=True).item()
+def load_casas(dataset):
+    X = np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True)
+    # y = np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True)
+    dictActivities = np.load('./npy/{}-labels.npy'.format(dataset), allow_pickle=True).item()
 
     X_scaled=TimeSeriesScalerMeanVariance().fit_transform(X)
     return X_scaled, dictActivities

@@ -24,7 +24,7 @@ import keras.backend as K
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
-from datasets import load_data, load_cairo
+from datasets import load_data, load_casas
 import data
 
 # DTC components
@@ -488,9 +488,10 @@ if __name__ == "__main__":
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
+    dataset_names=['cairo', 'kyoto7', 'kyoto11', 'milan', 'kyoto8']
     # Load data
     # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
-    X_train, dictActivities = load_cairo()
+    X_train, dictActivities = load_casas(dataset_names[0]) # cairo
     y_train=None; X_val=None; y_val=None
     # print(X_train.shape) # input_dim
     # print(y_train.shape)
