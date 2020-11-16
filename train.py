@@ -164,7 +164,7 @@ if __name__ == '__main__':
         currenttime = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
         csvfile = 'cv-scores-' + modelname + '-' + dataset + '-' + str(currenttime) + '.csv'
 
-        with open(csvfile, "w") as output:
+        with open('./csv/'+csvfile, "w") as output:
             writer = csv.writer(output, lineterminator='\n')
             for val in cvscores:
                 writer.writerow([",".join(str(el) for el in val)])
