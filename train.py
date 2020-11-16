@@ -24,42 +24,45 @@ epochs = 200
 if __name__ == '__main__':
     """The entry point"""
     # set and parse the arguments list
-    XX=np.load('npy/cairo-x.npy', allow_pickle=True)
-    YY=np.load('npy/result_32.npy', allow_pickle=True).argmax(axis=1)
-    dictActivities= np.load('npy/cairo-labels.npy', allow_pickle=True).item()
+    ####################################################################################### revised
+    # XX=np.load('npy/cairo-x.npy', allow_pickle=True)
+    # YY=np.load('npy/result_32.npy', allow_pickle=True).argmax(axis=1)
+    # dictActivities= np.load('npy/cairo-labels.npy', allow_pickle=True).item()
     
-    X=[]
-    Y=[]
-    x=[]
-    for i, y in enumerate(YY): # embedded activities
-      if i == 0: # initiate
-          Y.append(y) # list of embedded act
-          x = [XX[i]] # list of embedded val
-      if i > 0:
-          if y == YY[i - 1]: # previous act is same with current act
-              x.append(XX[i])
-          else:
-              Y.append(y) # current act is different from the previous one
-              X.append(np.concatenate(x)) # 
-              x = [XX[i]] # ?
-      if i == len(YY) - 1: # the last event of the dataset
-          if y != YY[i - 1]:
-              Y.append(y) # activity changed -> append into Y
-          X.append(np.concatenate(x))
-    print(len(X), len(Y))
-    X = sequence.pad_sequences(X, maxlen=2000, dtype='int32')
+    # X=[]
+    # Y=[]
+    # x=[]
+    # for i, y in enumerate(YY): # embedded activities
+    #   if i == 0: # initiate
+    #       Y.append(y) # list of embedded act
+    #       x = [XX[i]] # list of embedded val
+    #   if i > 0:
+    #       if y == YY[i - 1]: # previous act is same with current act
+    #           x.append(XX[i])
+    #       else:
+    #           Y.append(y) # current act is different from the previous one
+    #           X.append(np.concatenate(x)) # 
+    #           x = [XX[i]] # ?
+    #   if i == len(YY) - 1: # the last event of the dataset
+    #       if y != YY[i - 1]:
+    #           Y.append(y) # activity changed -> append into Y
+    #       X.append(np.concatenate(x))
+    # print(len(X), len(Y))
+    # X = sequence.pad_sequences(X, maxlen=2000, dtype='int32')
 
-    label_encoder = LabelEncoder()
-    Y = label_encoder.fit_transform(Y)
+    # label_encoder = LabelEncoder()
+    # Y = label_encoder.fit_transform(Y)
+    # print(Y.shape, Y)
+    ####################################################################################### revised
 
-    print(Y.shape, Y)
     p = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description='')
     p.add_argument('--v', dest='model', action='store', default='', help='deep model')
     args = p.parse_args()
 
     print(data.datasetsNames)
     for dataset in data.datasetsNames:
-        # X, Y, dictActivities = data.getData(dataset)
+
+        X, Y, dictActivities = data.getData(dataset)
 
         cvaccuracy = []
         cvscores = []

@@ -260,8 +260,8 @@ def load_dataset(filename):
         # put embedded activities into YY
         YY.append(dictActivities[activities[kk]])
 
-    return XX, YY, dictActivities
-    '''
+    # return XX, YY, dictActivities
+
     x = []
     for i, y in enumerate(YY): # embedded activities
         if i == 0: # initiate
@@ -278,7 +278,7 @@ def load_dataset(filename):
             if y != YY[i - 1]:
                 Y.append(y) # activity changed -> append into Y
             X.append(x)
-    return X, Y, dictActivities'''
+    return X, Y, dictActivities
 
 
 def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
@@ -310,11 +310,12 @@ if __name__ == '__main__':
         print("n° instances post-filtering:\t" + str(len(X)))
 
         print(Counter(Y))
-        X = np.array(X, dtype=object); print(X.shape)
+        X = np.array(X, dtype=object)
         # X = np.array(X[:-(len(X)%timesteps)], dtype=object)
         # X = X.reshape(-1, timesteps, 1)
         # print(X.shape)
         # no label
+        Y = np.array(Y, dtype=object)
         # Y = np.array(Y[:-(len(Y)%timesteps)], dtype=object)
         # Y = Y.reshape(X.shape[0], 1, 1)
         # print(Y.shape)
@@ -323,13 +324,13 @@ if __name__ == '__main__':
         if not os.path.exists('npy'):
             os.makedirs('npy')
 
-        # np.save('./npy/' + datasetName + '-x.npy', X)
-        # np.save('./npy/' + datasetName + '-y.npy', Y)
-        # np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
+        np.save('./npy/' + datasetName + '-x-original.npy', X)
+        np.save('./npy/' + datasetName + '-y-original.npy', Y)
+        np.save('./npy/' + datasetName + '-labels.npy', dictActivities)
 
 
-# def getData(datasetName):
-#     X = np.load('./npy/' + datasetName + '-x.npy')
-#     Y = np.load('./npy/' + datasetName + '-y.npy')
-#     dictActivities = np.load('./npy/' + datasetName + '-labels.npy').item()
-#     return X, Y, dictActivities
+def getData(datasetName):
+    X = np.load('./npy/' + datasetName + '-x.npy')
+    Y = np.load('./npy/' + datasetName + '-y.npy')
+    dictActivities = np.load('./npy/' + datasetName + '-labels.npy').item()
+    return X, Y, dictActivities
