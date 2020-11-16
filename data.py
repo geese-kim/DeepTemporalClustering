@@ -159,8 +159,8 @@ mappingActivities = {"cairo": {"": "Other",
                                "Guest_Bathroom": "Bathing"},
                      }
 
-# datasets = ["./dataset/cairo", "./dataset/kyoto7", "./dataset/kyoto8", "./dataset/kyoto11", "./dataset/milan"]
-datasets = ["./dataset/cairo"]
+datasets = ["./dataset/cairo", "./dataset/kyoto7", "./dataset/kyoto8", "./dataset/kyoto11", "./dataset/milan"]
+# datasets = ["./dataset/cairo"]
 datasetsNames = [i.split('/')[-1] for i in datasets]
 
 
@@ -262,23 +262,23 @@ def load_dataset(filename):
 
     return XX, YY, dictActivities
 
-    x = []
-    for i, y in enumerate(YY): # embedded activities
-        if i == 0: # initiate
-            Y.append(y) # list of embedded act
-            x = [XX[i]] # list of embedded val
-        if i > 0:
-            if y == YY[i - 1]: # previous act is same with current act
-                x.append(XX[i])
-            else:
-                Y.append(y) # current act is different from the previous one
-                X.append(x) # 
-                x = [XX[i]] # ?
-        if i == len(YY) - 1: # the last event of the dataset
-            if y != YY[i - 1]:
-                Y.append(y) # activity changed -> append into Y
-            X.append(x)
-    return X, Y, dictActivities
+    # x = []
+    # for i, y in enumerate(YY): # embedded activities
+    #     if i == 0: # initiate
+    #         Y.append(y) # list of embedded act
+    #         x = [XX[i]] # list of embedded val
+    #     if i > 0:
+    #         if y == YY[i - 1]: # previous act is same with current act
+    #             x.append(XX[i])
+    #         else:
+    #             Y.append(y) # current act is different from the previous one
+    #             X.append(x) # 
+    #             x = [XX[i]] # ?
+    #     if i == len(YY) - 1: # the last event of the dataset
+    #         if y != YY[i - 1]:
+    #             Y.append(y) # activity changed -> append into Y
+    #         X.append(x)
+    # return X, Y, dictActivities
 
 
 def convertActivities(X, Y, dictActivities, uniActivities, cookActivities):
@@ -321,7 +321,6 @@ if __name__ == '__main__':
         # X = sequence.pad_sequences(X, maxlen=max_lenght, dtype='int32')
         if not os.path.exists('npy'):
             os.makedirs('npy')
-        print(Y[:5])
 
         np.save('./npy/' + datasetName + '-x.npy', X)
         np.save('./npy/' + datasetName + '-y.npy', Y)
