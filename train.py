@@ -23,7 +23,7 @@ import models
 seed = 7
 units = 64
 epochs = 30
-
+MAX_LEN=0
 if __name__ == '__main__':
     """The entry point"""
     # set and parse the arguments list
@@ -68,9 +68,11 @@ if __name__ == '__main__':
     currenttime = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
     if not os.path.exists('./csv/{}'.format(fixed_length)):
       os.mkdir('./csv/{}'.format(fixed_length))
-      if args.cluster==0:
+    if args.cluster==0:
+      if not os.path.exists('./csv/{}/fixed'.format(fixed_length)):
         os.mkdir('./csv/{}/fixed'.format(fixed_length))
-      else:
+    else:
+      if not os.path.exists('./csv/{}/cluster'.format(fixed_length)):
         os.mkdir('./csv/{}/cluster'.format(fixed_length))
 
     for dataset in data.datasetsNames:
@@ -101,7 +103,7 @@ if __name__ == '__main__':
           Y=[]
           x_=[]
           y_=[]
-          MAX_LEN=0
+          
 
           for i, y in enumerate(CY): # embedded activities
             if i == 0: # initiate
@@ -155,81 +157,83 @@ if __name__ == '__main__':
         cvscores = []
         modelname = ''
 
-        kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
+        # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33)
+
+        kfold = StratifiedKFold(n_splits=2, shuffle=True, random_state=seed)
         k = 0
         for train, test in kfold.split(X, Y):
-            print('X_train shape:', X[train].shape)
-            print('y_train shape:', Y[train].shape)
+          print('X_train shape:', X[train].shape)
+          print('y_train shape:', Y[train].shape)
 
-            print(dictActivities)
-            args_model = str(args.model)
+          print(dictActivities)
+          args_model = str(args.model)
 
-            if 'Ensemble' in args_model:
-                input_dim = len([X[train], X[train]])
-                X_train_input = [X[train], X[train]]
-                X_test_input = [X[test], X[test]]
-            else:
-                input_dim = len(X[train])
-                X_train_input = X[train]
-                X_test_input = X[test]
-            no_activities = len(dictActivities)
+          if 'Ensemble' in args_model:
+              input_dim = len([X[train], X[train]])
+              X_train_input = [X[train], X[train]]
+              X_test_input = [X[test], X[test]]
+          else:
+              input_dim = len(X[train])
+              X_train_input = X[train]
+              X_test_input = X[test]
+          no_activities = len(dictActivities)
 
-            if args_model == 'LSTM':
-                model = models.get_LSTM(input_dim, units, data.max_lenght, no_activities)
-            elif args_model == 'biLSTM':
-                model = models.get_biLSTM(input_dim, units, data.max_lenght, no_activities)
-            elif args_model == 'Ensemble2LSTM':
-                model = models.get_Ensemble2LSTM(input_dim, units, data.max_lenght, no_activities)
-            elif args_model == 'CascadeEnsembleLSTM':
-                model = models.get_CascadeEnsembleLSTM(input_dim, units, data.max_lenght, no_activities)
-            elif args_model == 'CascadeLSTM':
-                model = models.get_CascadeLSTM(input_dim, units, data.max_lenght, no_activities)
-            else:
-                print('Please get the model name '
-                      '(eg. --v [LSTM | biLSTM | Ensemble2LSTM | CascadeEnsembleLSTM | CascadeLSTM])')
-                exit(-1)
+          if args_model == 'LSTM':
+              model = models.get_LSTM(input_dim, units, MAX_LEN, no_activities)
+          elif args_model == 'biLSTM':
+              model = models.get_biLSTM(input_dim, units, MAX_LEN, no_activities)
+          elif args_model == 'Ensemble2LSTM':
+              model = models.get_Ensemble2LSTM(input_dim, units, MAX_LEN, no_activities)
+          elif args_model == 'CascadeEnsembleLSTM':
+              model = models.get_CascadeEnsembleLSTM(input_dim, units, MAX_LEN, no_activities)
+          elif args_model == 'CascadeLSTM':
+              model = models.get_CascadeLSTM(input_dim, units, MAX_LEN, no_activities)
+          else:
+              print('Please get the model name '
+                    '(eg. --v [LSTM | biLSTM | Ensemble2LSTM | CascadeEnsembleLSTM | CascadeLSTM])')
+              exit(-1)
 
-            model = models.compileModel(model)
-            modelname = model.name
+          model = models.compileModel(model)
+          modelname = model.name
 
-            # currenttime = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
-            if args.cluster==0:
-              csv_logger = CSVLogger('./csv/{}/fixed/'.format(fixed_length) +
+          # currenttime = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
+          if args.cluster==0:
+            csv_logger = CSVLogger('./csv/{}/fixed/'.format(fixed_length) +
+            model.name + '-' + dataset + '-' + str(currenttime) + '.csv')
+          else:
+            csv_logger = CSVLogger('./csv/{}/cluster/'.format(fixed_length) +
               model.name + '-' + dataset + '-' + str(currenttime) + '.csv')
-            else:
-              csv_logger = CSVLogger('./csv/{}/cluster/'.format(fixed_length) +
-                model.name + '-' + dataset + '-' + str(currenttime) + '.csv')
-            model_checkpoint = ModelCheckpoint('./csv/{}/'.format(currenttime) +
-                model.name + '-' + dataset + '-' + str(currenttime) + '.h5',
-                monitor='acc',
-                save_best_only=True)
+          model_checkpoint = ModelCheckpoint('./csv/{}/'.format(currenttime) +
+              model.name + '-' + dataset + '-' + str(currenttime) + '.h5',
+              monitor='acc',
+              save_best_only=True)
 
-            # train the model
-            print('Begin training ...')
-            class_weight = compute_class_weight('balanced', np.unique(Y),
-                                                Y)  # use as optional argument in the fit function
+          # train the model
+          print('Begin training ...')
+          class_weight = compute_class_weight('balanced', np.unique(Y),
+                                              Y)  # use as optional argument in the fit function
 
-            model.fit(X_train_input, Y[train], validation_split=0.2, epochs=epochs, batch_size=64, verbose=1,
-                      callbacks=[csv_logger, model_checkpoint])
+          model.fit(X_train_input, Y[train], validation_split=0.2, epochs=epochs, batch_size=64, verbose=1,
+                    callbacks=[csv_logger, model_checkpoint])
 
-            # evaluate the model
-            print('Begin testing ...')
-            scores = model.evaluate(X_test_input, Y[test], batch_size=64, verbose=1)
-            print('%s: %.2f%%' % (model.metrics_names[1], scores[1] * 100))
+          # evaluate the model
+          print('Begin testing ...')
+          scores = model.evaluate(X_test_input, Y[test], batch_size=64, verbose=1)
+          print('%s: %.2f%%' % (model.metrics_names[1], scores[1] * 100))
 
-            print('Report:')
-            target_names = sorted(dictActivities, key=dictActivities.get)
+          print('Report:')
+          target_names = sorted(dictActivities, key=dictActivities.get)
 
-            classes = model.predict_classes(X_test_input, batch_size=64)
-            print(classification_report(list(Y[test]), classes, target_names=target_names))
-            print('Confusion matrix:')
-            labels = list(dictActivities.values())
-            print(confusion_matrix(list(Y[test]), classes, labels))
+          classes = model.predict_classes(X_test_input, batch_size=64)
+          print(classification_report(list(Y[test]), classes, target_names=target_names))
+          print('Confusion matrix:')
+          labels = list(dictActivities.values())
+          print(confusion_matrix(list(Y[test]), classes, labels))
 
-            cvaccuracy.append(scores[1] * 100)
-            cvscores.append(scores)
+          cvaccuracy.append(scores[1] * 100)
+          cvscores.append(scores)
 
-            k += 1
+          k += 1
 
         print('{:.2f}% (+/- {:.2f}%)'.format(np.mean(cvaccuracy), np.std(cvaccuracy)))
 
