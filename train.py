@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
         # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33)
 
-        kfold = StratifiedKFold(n_splits=2, shuffle=True, random_state=seed)
+        kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
         k = 0
         for train, test in kfold.split(X, Y):
           print('X_train shape:', X[train].shape)
@@ -233,6 +233,7 @@ if __name__ == '__main__':
           cvaccuracy.append(scores[1] * 100)
           cvscores.append(scores)
 
+          break
           k += 1
 
         print('{:.2f}% (+/- {:.2f}%)'.format(np.mean(cvaccuracy), np.std(cvaccuracy)))
