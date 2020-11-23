@@ -15,16 +15,16 @@ ucr = UCR_UEA_datasets()
 # UCR/UEA univariate and multivariate datasets.
 all_ucr_datasets = ucr.list_datasets()
 
-fixed_length=32
 
-def load_casas(dataset):
+
+def load_casas(dataset, fixed_length):
     # X = np.load('./npy/{}-x.npy'.format(dataset), allow_pickle=True); X=X[:-1*(X.shape[0]%fixed_length)].reshape(-1, fixed_length, 1); print(X.shape)
     # Y = np.load('./npy/{}-y.npy'.format(dataset), allow_pickle=True); Y=Y[:-1*(Y.shape[0]%fixed_length)].reshape(-1, fixed_length, 1); print(Y.shape); Y=np.array(Y, dtype=int)
-    X = np.load('./npy/{}/{}-x-noidle.npy'.format(fixed_length, dataset), allow_pickle=True)
+    X = np.load('./npy/{}-x-noidle.npy'.format(dataset), allow_pickle=True)
     if -1*(X.shape[0]%fixed_length)!=0:
       X=X[:-1*(X.shape[0]%fixed_length)]
     X=X.reshape(-1, fixed_length, 1); print(X.shape)
-    Y = np.load('./npy/{}/{}-y-noidle.npy'.format(fixed_length, dataset), allow_pickle=True)
+    Y = np.load('./npy/{}-y-noidle.npy'.format(dataset), allow_pickle=True)
     if -1*(Y.shape[0]%fixed_length)!=0:
       Y=Y[:-1*(Y.shape[0]%fixed_length)]
     Y=Y.reshape(-1, fixed_length, 1); print(Y.shape); Y=np.array(Y, dtype=int)
@@ -39,7 +39,7 @@ def load_casas(dataset):
     label_encoder = LabelEncoder()
     y = label_encoder.fit_transform(y)
 
-    dictActivities = np.load('./npy/{}/{}-labels-noidle.npy'.format(fixed_length, dataset), allow_pickle=True).item()
+    dictActivities = np.load('./npy/{}-labels-noidle.npy'.format(dataset), allow_pickle=True).item()
 
     X_scaled=TimeSeriesScalerMeanVariance().fit_transform(X)
     return X_scaled, y, dictActivities

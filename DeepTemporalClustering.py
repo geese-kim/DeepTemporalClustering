@@ -24,7 +24,7 @@ import keras.backend as K
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Dataset helper function
-from datasets import load_data, load_casas, fixed_length
+from datasets import load_data, load_casas
 import data
 
 # DTC components
@@ -473,6 +473,7 @@ if __name__ == "__main__":
     parser.add_argument('--cluster_init', default='kmeans', type=str, choices=['kmeans', 'hierarchical'], help='cluster initialization method')
     parser.add_argument('--heatmap', default=False, type=bool, help='train heatmap-generating network')
     parser.add_argument('--pretrain_epochs', default=10, type=int)
+    parser.add_argument('--length', default=32, type=int)
     parser.add_argument('--epochs', default=50, type=int)
     parser.add_argument('--eval_epochs', default=1, type=int)
     parser.add_argument('--save_epochs', default=10, type=int)
@@ -490,9 +491,9 @@ if __name__ == "__main__":
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    if not os.path.exists('./results/{}'.format(fixed_length)):
-        print("create new folder for length {}.".format(fixed_length))
-        os.makedirs('./results/{}'.format(fixed_length))
+    if not os.path.exists('./results/{}'.format(args.length)):
+        print("create new folder for length {}.".format(args.length))
+        os.makedirs('./results/{}'.format(args.length))
 
     dataset_names=['cairo', 'kyoto7', 'kyoto11', 'milan', 'kyoto8']
 
@@ -500,8 +501,9 @@ if __name__ == "__main__":
       # Load data
       # (X_train, y_train), (X_val, y_val) = load_data(args.dataset), (None, None)  # no train/validation split for now
       # print(X_train.shape, y_train.shape)
-      X_train, _, dictActivities = load_casas(item) 
-      y_train=None; X_val=None; y_val=None
+      X_train, y_train, dictActivities = load_casas(item, args.length) 
+      # y_train=None; 
+      X_val=None; y_val=None
       # print(X_train.shape) # input_dim
       # print(y_train.shape)
       print(X_train.shape)
@@ -560,7 +562,7 @@ if __name__ == "__main__":
       results = {}
       q = dtc.model.predict(X_train)[1]
       y_pred = q.argmax(axis=1)
-      np.save('./results/{}/clustering_{}.npy'.format(fixed_length, item), y_pred)
+      np.save('./results/{}/clustering_{}.npy'.format(args.length, item), y_pred)
       if y_train is not None:
           results['acc'] = cluster_acc(y_train, y_pred)
           results['pur'] = cluster_purity(y_train, y_pred)
